@@ -3,6 +3,23 @@
     "configItem": [
         {
             "global": 0,
+            "name": "ModbusAsunc",
+            "type": "Reading",
+            "subtype": "mbClient",
+            "id": "mb",
+            "widget": "anydataTmp",
+            "page": "Modbus",
+            "descr": "Настройки и запись modbus",
+            "int": 5,
+            "RX": 18,
+            "TX": 19,
+            "DIR_PIN": 0,
+            "baud": 9600,
+            "protocol": "SERIAL_8N1",
+            "debug": 1
+        },
+        {
+            "global": 0,
             "name": "ModbusNode",
             "type": "Reading",
             "subtype": "mbNode",
@@ -15,26 +32,11 @@
             "addr": 1,
             "reg": "0x0000",
             "count": 1,
+            "multiply": 0.1,
             "isFloat": 0,
-            "round": 0
-        },
-        {
-            "global": 0,
-            "name": "ModbusAsunc",
-            "type": "Reading",
-            "subtype": "mbClient",
-            "id": "mb",
-            "widget": "anydataTmp",
-            "page": "Modbus",
-            "descr": "Настройки и запись modbus",
-            "int": 5,
-            "RX": 18,
-            "TX": 19,
-            "DIR_PIN": 4,
-            "baud": 9600,
-            "protocol": "SERIAL_8N2",
-            "debug": 1
+            "round": 1
         }
+
     ],
     "about": {
         "authorName": "Bubnov Mikhail",
@@ -48,7 +50,8 @@
             "esp8266_4mb": 15
         },
         "subTypes": [
-            "mbClient"
+            "mbClient",
+            "mbNode"
         ],
         "title": "ModbusAsync",
         "moduleDesc": "Позволяет управлять оборудованием по протоколу modbus. Модуль ModbusAsync обязательный для настройки. Запись через функции сценария в ModbusAsync. Для чтение регистров добавлять модули ModbusNode.",
