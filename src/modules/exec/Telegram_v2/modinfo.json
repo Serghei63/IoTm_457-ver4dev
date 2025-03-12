@@ -124,7 +124,7 @@
          ]
     },
 
-    "defActive": false,
+    "defActive": true,
 
     "usedLibs": {
         "esp32*": [
