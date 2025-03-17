@@ -9,7 +9,6 @@
 #ifndef ESP8266
 std::vector<String> _ssidList;
 std::vector<String> _passwordList;
-volatile bool scanInProgress = false;
 // номер сети, для перебирания в момент подключения к сетям из массива
 volatile uint8_t currentNetwork = 0;
 volatile bool wifiConnecting = false;
@@ -46,6 +45,7 @@ void WiFiEvent(arduino_event_t *event)
     SerialPrint("i", "WIFI", "http://" + WiFi.localIP().toString());
     jsonWriteStr(settingsFlashJson, "ip", WiFi.localIP().toString());
 #endif
+    createItemFromNet("onWifi", "1", 1);
     // запускаем MQTT
     mqttInit();
     SerialPrint("i", F("WIFI"), F("Network Init"));
@@ -78,10 +78,17 @@ void WiFiEvent(arduino_event_t *event)
 #else
   case SYSTEM_EVENT_SCAN_DONE:
 #endif
+    if (WiFi.scanComplete() >= 0) {
+      Serial.println("Valid Scan completed");
+      handleScanResults();
+      WiFi.scanDelete(); // Очищаем только при успешном сканировании
+    } else {
+      //Serial.println("Empty scan or error");
+      //WiFi.scanDelete(); // Принудительная очистка буфера
+    }
     // Завершилось сканирование сетей
-    Serial.println("Scan completed");
-    scanInProgress = false;
-    handleScanResults();
+    //Serial.println("Scan completed");
+    //handleScanResults();
     break;
   }
 }
@@ -119,11 +126,11 @@ void handleScanResults()
           connectNumNet = i;
       }
     }
-
     // if
   }
+  sendStringToWs("ssidli", ssidListHeapJson, -1);  
   SerialPrint("i", "WIFI", "Scan Found: " + ssidListHeapJson);
-  if (connectNumNet >= 0)
+  if (connectNumNet >= 0 && !isNetworkActive())
   {
     // ts.remove(WIFI_SCAN);
     connectToNextNetwork();
@@ -141,11 +148,13 @@ void WiFiUtilsItit()
 #else
   WiFi.setAutoConnect(false);
 #endif
-  WiFi.persistent(false);
-  WiFi.setSleep(true);
+  WiFi.persistent(true); // Сохраняет текущую сеть при сканировании
+  WiFi.setSleep(false);
 #endif
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(WiFiEvent);
+  _ssidList.clear();
+  _passwordList.clear();
   jsonReadArray(settingsFlashJson, "routerssid", _ssidList);
   jsonReadArray(settingsFlashJson, "routerpass", _passwordList);
 
@@ -380,7 +389,7 @@ void routerConnect()
     SerialPrint("i", "WIFI", "http://" + WiFi.localIP().toString());
     jsonWriteStr(settingsFlashJson, "ip", WiFi.localIP().toString());
 #endif
-
+    createItemFromNet("onWifi", "1", 1);
     mqttInit();
   }
   SerialPrint("i", F("WIFI"), F("Network Init"));

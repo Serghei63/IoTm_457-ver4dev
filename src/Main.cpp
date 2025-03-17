@@ -146,6 +146,7 @@ void setup() {
     jsonRead(settingsFlashJson, "pinSDA", pinSDA, false);
     jsonRead(settingsFlashJson, "i2cFreq", i2cFreq, false);
     jsonRead(settingsFlashJson, "i2c", i2c, false);
+    //jsonWriteStr_(ssidListHeapJson, "0", "Scaning...");
     if (i2c != 0) {
 #ifdef ESP32
         Wire.end();

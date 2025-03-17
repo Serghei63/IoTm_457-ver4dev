@@ -143,6 +143,10 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
                 sendFileToWsByFrames("/widgets.json", "widget", "", num, WEB_SOCKETS_FRAME_SIZE);
                 sendFileToWsByFrames("/config.json", "config", "", num, WEB_SOCKETS_FRAME_SIZE);
                 sendStringToWs("settin", settingsFlashJson, num);
+#ifndef ESP8266                
+                ssidListHeapJson = "{}";
+                jsonWriteStr_(ssidListHeapJson, "0", "Scanning...");
+#endif
                 sendStringToWs("ssidli", ssidListHeapJson, num);
                 sendStringToWs("errors", errorsHeapJson, num);
                 // запуск асинхронного сканирования wifi сетей при переходе на страницу
@@ -157,6 +161,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
                 sendStringToWs("errors", errorsHeapJson, num);
                 // если не было создано приема данных по udp - то создадим его
                 addThisDeviceToList();
+#ifndef ESP8266                
+                settingsFlashJson = readFile(F("settings.json"), 4096);
+                settingsFlashJson.replace("\r\n", "");
+                Serial.println(settingsFlashJson);
+                WiFiUtilsItit();
+#endif                
             }
 
             // обработка кнопки сохранить настройки mqtt
@@ -173,12 +183,21 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t* payload, size_t length)
             // запуск асинхронного сканирования wifi сетей при нажатии выпадающего
             // списка
             if (headerStr == "/scan|") {
+#ifdef ESP8266
                 std::vector<String> jArray;
                 jsonReadArray(settingsFlashJson, "routerssid", jArray);
-#ifdef ESP8266
                 RouterFind(jArray);
-#endif
                 sendStringToWs("ssidli", ssidListHeapJson, num);
+#else
+                //String ssidScan = "{Scaning...}";
+                //ssidListHeapJson = "{}";
+                //jsonWriteStr_(ssidListHeapJson, "0", "Scanning...");
+                //Serial.println("Async scan:" + String(ssidListHeapJson));
+                sendStringToWs("ssidli", ssidListHeapJson, num);
+                if (ssidListHeapJson == "{\"0\":\"Scanning...\"}")
+                    ScanAsync();
+#endif
+
             }
 
             //----------------------------------------------------------------------//
