@@ -149,7 +149,7 @@ void WiFiUtilsItit()
   WiFi.setAutoConnect(false);
 #endif
   WiFi.persistent(true); // Сохраняет текущую сеть при сканировании
-  WiFi.setSleep(false);
+  WiFi.setSleep(true);
 #endif
   WiFi.mode(WIFI_STA);
   WiFi.onEvent(WiFiEvent);
